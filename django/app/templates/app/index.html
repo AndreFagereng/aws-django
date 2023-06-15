@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Minimal Django File Upload Example</title>
+  </head>
+  <body>
+    <!-- List of uploaded documents -->
+    <h2>Files uploaded</h2>
+    {% if documents %}
+    <ul>
+      {% for document in documents %}
+      <li>{{ document }}</li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    <p>No documents.</p>
+    {% endif %}
+
+    <h2>Upload CSV</h2>
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      <p>Owner</p>
+      <input type="text" value="" name="owner" />
+      <p>File</p>
+      <input type="file" value="Browse" name="file" accept="text/csv" />
+      <input type="submit" value="Upload" />
+      {% if upload_success %}
+      <p>Upload successful</p>
+      {% endif %}
+    </form>
+  </body>
+</html>
