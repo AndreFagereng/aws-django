@@ -2,7 +2,13 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from .models import FileUploadForm
 
+from rest_framework import viewsets
+from .serializers import FirmSerializer
+from .models import Firm
 
+class FirmView(viewsets.ModelViewSet):
+    serializer_class = FirmSerializer
+    queryset = Firm.objects.all()
 
 def index(request):
     items = [f"doc{i}" for i in range(0)]
