@@ -3,7 +3,7 @@ from django.contrib import admin
 from .models import Firm
 
 class FirmAdmin(admin.ModelAdmin):
-    list_display = ('name', 'type', 'employees', 'email', 'telephone', 'website')
+    list_display = ('name', 'orgnr', 'orgtype', 'nace', 'employees', 'email', 'telephone', 'website')
 
 # Register your models here.
 

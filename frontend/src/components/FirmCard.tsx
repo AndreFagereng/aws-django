@@ -11,6 +11,7 @@ function FirmCard(props: Firm) {
   return (
     <>
       <div
+        id={props.name}
         onClick={() => {}}
         className="card mb-3"
         style={{ width: "65%", margin: "auto" }}
@@ -22,7 +23,9 @@ function FirmCard(props: Firm) {
             <hr></hr>
             <p className="card-text">Antall ansatte: {props.employees}</p>
             <p className="card-text">Telefon: {props.telephone}</p>
-            <p className="card-text">Epost: {props.email}</p>
+            <p className="card-text">
+              Epost: <a href="https://www.vg.no">{props.email}</a>
+            </p>
             <p className="card-text">
               Hjemmeside: <a href={props.website}> {props.website}</a>
             </p>

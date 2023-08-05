@@ -21,9 +21,10 @@ from app import views
 
 router = routers.DefaultRouter()
 router.register(r'firms', views.FirmView, 'firm')
+#router.register(r'emails', views.get_where_email_exists, 'emails')
 
 urlpatterns = [
     path("hello/", include("app.urls")),
     path('admin/', admin.site.urls),
-    path('api/', include(router.urls))
+    path('api/', include((router.urls, "app.urls"))),
 ]

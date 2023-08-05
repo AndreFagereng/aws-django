@@ -6,8 +6,10 @@ import time
 
 class Firm(models.Model):
     name = models.CharField(max_length=200)
-    type = models.CharField(max_length=200)
-    email = models.EmailField()
+    orgnr = models.CharField(max_length=50)
+    orgtype = models.CharField(max_length=200)
+    nace = models.CharField(max_length=200, default=None)
+    email = models.CharField(max_length=250)
     telephone = models.CharField(max_length=50)
     website = models.CharField(max_length=200)
     employees = models.IntegerField()
