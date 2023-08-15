@@ -1,12 +1,12 @@
 import { Fragment } from "react";
 import { useState } from "react";
-import React from "react";
 import axios from "axios";
 import { useEffect } from "react";
 import ReactPaginate from "react-paginate";
 
 import { naceList } from "./utils";
 import { styles } from "./styles/styles";
+import EmailModal from "./components/EmailModal";
 import Select from "react-select";
 
 import FormGroup from "@mui/material/FormGroup";
@@ -14,7 +14,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
-import { Collapse, Divider, Slider, Box } from "@mui/material";
+import { Collapse, Divider, Slider, Box, TextField } from "@mui/material";
 
 type Firma = {
   id: string;
@@ -39,21 +39,32 @@ function FirmaCard(firma: Firma, last_updated: string) {
   return (
     <Fragment key={firma.id}>
       {
-        <Card
-          key={firma.id}
-          onClick={() => {
-            toggleHide();
-          }}
-          className="card mb-3"
-          style={{ margin: "auto" }}
-        >
-          <div className="card-body" style={{ cursor: "pointer" }}>
-            <h5 className="card-title">{firma.name}</h5>
-            <p className="card-text">{firma.nace}</p>
+        <Card key={firma.id} className="card mb-3" style={{ margin: "auto" }}>
+          <div className="card-body">
+            <div
+              onClick={() => {
+                toggleHide();
+              }}
+              style={{ cursor: "pointer" }}
+            >
+              <h5 className="card-title">{firma.name}</h5>
+              <p className="card-text">{firma.nace}</p>
+            </div>
+
+            <div className="position-absolute top-0 end-0">
+              <FormGroup>
+                <FormControlLabel
+                  disabled
+                  style={{ color: "green" }}
+                  control={<Checkbox size="small" />}
+                  label="Kontaktet"
+                />
+              </FormGroup>
+            </div>
+
             <Collapse
               in={!hide}
               timeout="auto"
-              unmountOnExit
               easing={{
                 enter: "cubic-bezier(0.4, 0, 0.2, 1)",
                 exit: "cubic-bezier(0.4, 0, 0.2, 1)",
@@ -67,7 +78,13 @@ function FirmaCard(firma: Firma, last_updated: string) {
                 <Divider />
 
                 <div style={{ textAlign: "left", margin: "auto" }}>
-                  <div className="container">
+                  <div
+                    onClick={() => {
+                      toggleHide();
+                    }}
+                    className="container cus"
+                    style={{ cursor: "pointer" }}
+                  >
                     <div className="row">
                       <div className="col"></div>
                       <div className="col"></div>
@@ -143,8 +160,7 @@ function FirmaCard(firma: Firma, last_updated: string) {
                     </div>
                   </div>
                 </div>
-                <Button variant="contained">Mer</Button>
-                <Button variant="outlined">Send epost</Button>
+                <EmailModal name={firma.name} emails={firma.email} nace={firma.nace}></EmailModal>
               </div>
             </Collapse>
             <p className="card-text">
@@ -163,6 +179,7 @@ function FirmaOverview() {
   const [count, setCount] = useState(0);
   const [limit, setLimit] = useState(itemsPerPage);
   const [offset, setOffset] = useState(0);
+  const [currentPage, setCurrentPage] = useState(-1);
 
   const [hasEmail, setHasEmail] = useState(false);
   const [hasWebsite, setHasWebsite] = useState(false);
@@ -196,9 +213,17 @@ function FirmaOverview() {
       .catch((err) => console.log(err));
   }, [offset, hasEmail, hasWebsite, hasTelephone, selectedNace, selectedEmployees]);
 
+  // Resets ReactPaginate initial page and offset
+  // Will be an issue if count is similar for two events
+  useEffect(() => {
+    setCurrentPage(0);
+    setOffset(0);
+  }, [count]);
+
   const handlePageClick = (a: { selected: number }) => {
     const newOffset = (a.selected * itemsPerPage) % count;
     setOffset(newOffset);
+    setCurrentPage(a.selected);
   };
 
   function valuetext(value: number) {
@@ -210,6 +235,7 @@ function FirmaOverview() {
 
   const handleSliderOnCommit = () => {
     setSelectedEmployees(employees);
+    setEmployees(employees as number[]);
   };
 
   let naceOptions: NaceInfo[] = [];
@@ -220,7 +246,6 @@ function FirmaOverview() {
   }
 
   naceList.map((item) => naceOptions.push({ label: item, value: item }));
-
   return (
     <>
       <div className="container">
@@ -240,8 +265,17 @@ function FirmaOverview() {
                   }}
                 />
               </div>
+              <h6 style={{ padding: "20px 0px 0px 0px" }}>Ansatte</h6>
+              <div className="row">
+                <div className="col">
+                  <TextField value={employees[0]} id="outlined-basic" variant="outlined" />
+                </div>
+                <div className="col">
+                  <TextField value={employees[1]} id="outlined-basic" variant="outlined" />
+                </div>
+              </div>
+
               <div className="justify-content-center row">
-                <h6 style={{ padding: "20px 0px 0px 0px" }}>Ansatte</h6>
                 <Box sx={{ width: 300 }}>
                   <Slider
                     getAriaLabel={() => "Temperature range"}
@@ -290,6 +324,7 @@ function FirmaOverview() {
             ))}
             <div style={{ margin: "auto" }}>
               <ReactPaginate
+                forcePage={currentPage}
                 breakLabel="..."
                 onPageChange={handlePageClick}
                 pageRangeDisplayed={5}
