@@ -20,13 +20,16 @@ interface EmailModalProps {
   emails: string;
   name: string;
   nace: string;
+  onButtonClick: () => void;
+}
+
+interface EmailOption {
+  label: string;
+  value: string;
 }
 
 export default function EmailModal(props: EmailModalProps) {
-  interface EmailOption {
-    label: string;
-    value: string;
-  }
+
   let emailOptions: EmailOption[] = [];
   JSON.parse(props.emails).map((item: string) => emailOptions.push({ label: item, value: item }));
 
@@ -114,8 +117,9 @@ export default function EmailModal(props: EmailModalProps) {
               <Button
                 className="mt-4 w-50"
                 onClick={(e) => {
-                  window.location.href = createMailToString().toString();
-                  console.log(createMailToString().toString());
+                  props.onButtonClick();
+                  //window.location.href = createMailToString().toString();
+                  window.open(createMailToString().toString(), "_blanc")
                 }}
                 variant="outlined"
                 disabled={disable()}

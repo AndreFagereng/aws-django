@@ -1,4 +1,4 @@
-import { Fragment } from "react";
+import { Fragment} from "react";
 import { useState } from "react";
 import axios from "axios";
 import { useEffect } from "react";
@@ -12,9 +12,9 @@ import Select from "react-select";
 import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
-import Button from "@mui/material/Button";
 import Card from "@mui/material/Card";
 import { Collapse, Divider, Slider, Box, TextField } from "@mui/material";
+
 
 type Firma = {
   id: string;
@@ -26,15 +26,19 @@ type Firma = {
   email: string;
   telephone: string;
   website: string;
+  address: string;
+  postal: string;
+  postalcode: string;
+  municipality: string;
 };
 
 function FirmaCard(firma: Firma, last_updated: string) {
   const [hide, setHide] = useState(true);
+  const [contacted, setContacted] = useState(false);
   const toggleHide = () => {
     setHide(!hide);
   };
 
-  const emails = JSON.parse(firma.email.toString());
 
   return (
     <Fragment key={firma.id}>
@@ -50,17 +54,19 @@ function FirmaCard(firma: Firma, last_updated: string) {
               <h5 className="card-title">{firma.name}</h5>
               <p className="card-text">{firma.nace}</p>
             </div>
-
             <div className="position-absolute top-0 end-0">
               <FormGroup>
                 <FormControlLabel
-                  disabled
-                  style={{ color: "green" }}
-                  control={<Checkbox size="small" />}
-                  label="Kontaktet"
+                    checked={contacted}
+                    onClick={() => setContacted(!contacted)}
+                    disabled={false}
+                    style={{ opacity: 0.5 }}
+                    control={<Checkbox size="small" />}
+                    label="Kontaktet"
                 />
               </FormGroup>
             </div>
+
 
             <Collapse
               in={!hide}
@@ -86,18 +92,28 @@ function FirmaCard(firma: Firma, last_updated: string) {
                     style={{ cursor: "pointer" }}
                   >
                     <div className="row">
-                      <div className="col"></div>
-                      <div className="col"></div>
+
+                      <div className="col">
+                        <p className="card-text">
+                          <span style={{ fontWeight: "bold" }}>Adresse: </span>
+                          {firma.address + ", " + firma.postalcode + " " + firma.postal}
+                        </p>
+
+                        <p className="card-text">
+                          <span style={{ fontWeight: "bold" }}>Kommune: </span>
+                          {firma.municipality}
+                        </p>
+                      </div>
                       <div className="col">
                         <div className="row">
                           <p className="card-text">
-                            <span style={{ fontWeight: "500" }}>Ansatte: </span>
+                            <span style={{ fontWeight: "bold" }}>Ansatte: </span>
                             {firma.employees}
                           </p>
                         </div>
                         <div className="row">
                           <p>
-                            <span style={{ fontWeight: "500" }}>Proff: </span>
+                            <span style={{ fontWeight: "bold" }}>Proff: </span>
                             <a target="_blank" href={`https://www.proff.no/bransjes%C3%B8k?q=${firma.orgnr}`}>
                               {firma.orgnr}
                             </a>{" "}
@@ -108,7 +124,7 @@ function FirmaCard(firma: Firma, last_updated: string) {
                         <div className="row"></div>
                         <div className="row">
                           <p className="card-text">
-                            <span style={{ fontWeight: "500" }}>Telefon: </span>
+                            <span style={{ fontWeight: "bold" }}>Telefon: </span>
                             <ul>
                               {JSON.parse(firma.telephone).map((item: string) => (
                                 <li id={item}>{item}</li>
@@ -122,21 +138,7 @@ function FirmaCard(firma: Firma, last_updated: string) {
                             <ul>
                               {JSON.parse(firma.email).map((item: string) => (
                                 <li id={item}>
-                                  <a
-                                    href={
-                                      "mailto:" +
-                                      item +
-                                      "?subject=Hei " +
-                                      firma.name +
-                                      "!" +
-                                      "&body=" +
-                                      "Jeg så at dere jobber innen " +
-                                      firma.nace +
-                                      "!"
-                                    }
-                                  >
-                                    {item}
-                                  </a>
+                                  {item}
                                 </li>
                               ))}
                             </ul>
@@ -160,7 +162,8 @@ function FirmaCard(firma: Firma, last_updated: string) {
                     </div>
                   </div>
                 </div>
-                <EmailModal name={firma.name} emails={firma.email} nace={firma.nace}></EmailModal>
+                <EmailModal name={firma.name} emails={firma.email} nace={firma.nace} onButtonClick={() => {  setContacted(true)
+                console.log("CLICKED")}}></EmailModal>
               </div>
             </Collapse>
             <p className="card-text">
@@ -187,7 +190,7 @@ function FirmaOverview() {
   const [selectedNace, setSelectedNace] = useState("");
   const [selectedEmployees, setSelectedEmployees] = useState<number[]>([0, 100000]);
 
-  const [employees, setEmployees] = useState<number[]>([0, 50]);
+  const [employees, setEmployees] = useState<number[]>([0, 100000]);
 
   let url = `http://localhost:8000/api/firms/custom/?limit=${limit}&offset=${offset}&employees=[${selectedEmployees[0]},${selectedEmployees[1]}]`;
   const updateUrl = (str: string, replace: boolean) => {
@@ -252,6 +255,19 @@ function FirmaOverview() {
         <div className="row">
           <div className="col-3">
             <Card style={{ padding: "10px 10px 10px 10px" }}>
+              <div style={{ margin: "auto", padding: "20px 0px 20px 0px" }}>
+                <Select
+                    placeholder="Velg kommune"
+                    options={naceOptions}
+                    closeMenuOnSelect={false}
+                    isMulti
+                    styles={styles}
+                    onChange={(choice) => {
+                      const itemList = choice.map((item) => item.value);
+                      setSelectedNace(itemList.join("æsepæ"));
+                    }}
+                />
+              </div>
               <div style={{ margin: "auto", padding: "20px 0px 20px 0px" }}>
                 <Select
                   placeholder="Velg bransje"
@@ -319,6 +335,10 @@ function FirmaOverview() {
                   nace={item.nace}
                   employees={item.employees}
                   website={item.website}
+                  address={item.address}
+                  postal={item.postal}
+                  postalcode={item.postalcode}
+                  municipality={item.municipality}
                 ></FirmaCard>
               </Fragment>
             ))}

@@ -25,7 +25,7 @@ class FirmView(viewsets.ModelViewSet):
     serializer_class = FirmSerializer
     pagination_class = LimitOffsetPagination
     queryset = Firm.objects.all()
-    
+
 
     @action(detail=False, methods=['GET'], name='')
     def custom(self, request):
@@ -47,10 +47,10 @@ class FirmView(viewsets.ModelViewSet):
             queryset = queryset.filter(employees__gte=empl[0])
             queryset = queryset.filter(employees__lte=empl[1])
         #print(queryset.query)
-
         count = queryset.count()
         queryset = LimitOffsetPagination().paginate_queryset(queryset=queryset, request=request)
         serializer = self.get_serializer(queryset, many=True)
+        print(serializer.data)
         return Response(OrderedDict([
             ("results", serializer.data),
             ("count", count)
@@ -76,5 +76,5 @@ def index(request):
             file = request.FILES['file']
             items.append(file)
             return render(request, "app/index.html", {"upload_success": True, "documents": items})
-            
+
     return render(request, "app/index.html", {"documents": items})

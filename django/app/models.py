@@ -13,6 +13,11 @@ class Firm(models.Model):
     telephone = models.CharField(max_length=50)
     website = models.CharField(max_length=200)
     employees = models.IntegerField()
+    address = models.CharField(max_length=200, default="Hammersborggata 2")
+    postal = models.CharField(max_length=100, default="Oslo")
+    postalcode = models.CharField(max_length=10, default="0181")
+    municipality = models.CharField(max_length=100, default="Oslo")
+
 
 class FileUpload(models.Model):
     owner = models.CharField(max_length=50)

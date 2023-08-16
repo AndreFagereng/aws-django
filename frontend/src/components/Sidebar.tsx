@@ -1,6 +1,6 @@
 "use client";
 
-import { cn } from "../../@/lib/utils";
+//import { cn } from "../../@/lib/utils";
 
 export const Sidebar = () => {
   const routes = [
@@ -30,8 +30,8 @@ export const Sidebar = () => {
           {routes.map((route) => (
             <div
               key={route.href}
-              className="bg-primary text-muted-foreground text-xs group flex 
-              p-3 w-full justify-start font-medium cursor-pointer hover:text-primary 
+              className="bg-primary text-muted-foreground text-xs group flex
+              p-3 w-full justify-start font-medium cursor-pointer hover:text-primary
               hover:bg-primary/10 rounded-lg transition"
             >
               <div className="flex flex-col gap-y-2 items-center flex-1 white">{route.label}</div>
