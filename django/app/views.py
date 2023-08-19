@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from django.db.models import Q
 
-from .models import FileUploadForm
+from .models import FileUploadForm, FirmContacted
 from django.db.models import Q
 import json
 
@@ -15,11 +15,30 @@ import operator
 from functools import reduce
 
 
-from .serializers import FirmSerializer
+from .serializers import FirmContactedSerializer, FirmSerializer
 from .models import Firm
 
 from collections import OrderedDict
 
+def to_boolean(string):
+    return string == "True"
+
+class FirmContactedView(viewsets.ModelViewSet):
+    serializer_class = FirmContactedSerializer
+    queryset = FirmContacted.objects.all()
+
+    @action(detail=False, methods=['POST'], name='/')
+    def update_contacted(self, request):
+        print(request.data)
+        try:
+            obj, created = FirmContacted.objects.update_or_create(**request.data, defaults={
+                "user_id": request.data["user_id"],
+                "orgnr": request.data["orgnr"],
+                "contacted": not request.data["contacted"]
+            })
+        except Exception as e:
+            return Response(f"Update or create failed: {e}")
+        return Response("success")
 
 class FirmView(viewsets.ModelViewSet):
     serializer_class = FirmSerializer
@@ -31,7 +50,7 @@ class FirmView(viewsets.ModelViewSet):
     def custom(self, request):
 
 
-        queryset = Firm.objects.all()#all().exclude(email=None)
+        queryset = Firm.objects.all().extra(select={'contacted': 'SELECT contacted FROM "app_firmcontacted" WHERE "app_firm".orgnr = "app_firmcontacted".orgnr'})
 
         if request.GET.get("email", None):
             queryset = queryset.exclude(email="[]")
@@ -50,7 +69,12 @@ class FirmView(viewsets.ModelViewSet):
         count = queryset.count()
         queryset = LimitOffsetPagination().paginate_queryset(queryset=queryset, request=request)
         serializer = self.get_serializer(queryset, many=True)
-        print(serializer.data)
+        print(type(serializer.data[0]["contacted"]))
+        
+        #print(OrderedDict([
+        #    ("results", serializer.data),
+        #    
+        #]))
         return Response(OrderedDict([
             ("results", serializer.data),
             ("count", count)

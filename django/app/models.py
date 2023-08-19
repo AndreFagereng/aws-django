@@ -18,6 +18,13 @@ class Firm(models.Model):
     postalcode = models.CharField(max_length=10, default="0181")
     municipality = models.CharField(max_length=100, default="Oslo")
 
+class FirmContacted(models.Model):
+    user_id = models.CharField(max_length=10, default="user_id")
+    orgnr = models.CharField(max_length=50, default="")
+    contacted = models.BooleanField(default=False)
+    # date
+    # template used (email, subject, body)
+
 
 class FileUpload(models.Model):
     owner = models.CharField(max_length=50)

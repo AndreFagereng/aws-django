@@ -1,4 +1,4 @@
-import { Fragment} from "react";
+import { Fragment } from "react";
 import { useState } from "react";
 import axios from "axios";
 import { useEffect } from "react";
@@ -15,7 +15,6 @@ import Checkbox from "@mui/material/Checkbox";
 import Card from "@mui/material/Card";
 import { Collapse, Divider, Slider, Box, TextField } from "@mui/material";
 
-
 type Firma = {
   id: string;
   name: string;
@@ -30,20 +29,35 @@ type Firma = {
   postal: string;
   postalcode: string;
   municipality: string;
+  contacted: boolean;
 };
 
 function FirmaCard(firma: Firma, last_updated: string) {
   const [hide, setHide] = useState(true);
-  const [contacted, setContacted] = useState(false);
+  const [contacted, setContacted] = useState(firma.contacted);
   const toggleHide = () => {
     setHide(!hide);
   };
-
+  const contactUrl = "http://localhost:8000/api/contacted/update_contacted/";
+  const postContacted = () => {
+    setContacted(!contacted);
+    axios
+      .post(contactUrl, {
+        user_id: "andre",
+        orgnr: firma.orgnr,
+        contacted: contacted,
+      })
+      .catch((err) => console.log(err));
+  };
 
   return (
     <Fragment key={firma.id}>
       {
-        <Card key={firma.id} className="card mb-3" style={{ margin: "auto" }}>
+        <Card
+          key={firma.id}
+          className="card mb-3"
+          style={{ margin: "auto", backgroundColor: contacted ? "#F5F5F5" : "" }}
+        >
           <div className="card-body">
             <div
               onClick={() => {
@@ -57,16 +71,14 @@ function FirmaCard(firma: Firma, last_updated: string) {
             <div className="position-absolute top-0 end-0">
               <FormGroup>
                 <FormControlLabel
-                    checked={contacted}
-                    onClick={() => setContacted(!contacted)}
-                    disabled={false}
-                    style={{ opacity: 0.5 }}
-                    control={<Checkbox size="small" />}
-                    label="Kontaktet"
+                  checked={contacted}
+                  disabled={false}
+                  style={{ opacity: 0.5 }}
+                  control={<Checkbox onClick={postContacted} size="small" />}
+                  label="Kontaktet"
                 />
               </FormGroup>
             </div>
-
 
             <Collapse
               in={!hide}
@@ -92,7 +104,6 @@ function FirmaCard(firma: Firma, last_updated: string) {
                     style={{ cursor: "pointer" }}
                   >
                     <div className="row">
-
                       <div className="col">
                         <p className="card-text">
                           <span style={{ fontWeight: "bold" }}>Adresse: </span>
@@ -123,29 +134,27 @@ function FirmaCard(firma: Firma, last_updated: string) {
                       <div className="col">
                         <div className="row"></div>
                         <div className="row">
-                          <p className="card-text">
+                          <div className="card-text">
                             <span style={{ fontWeight: "bold" }}>Telefon: </span>
                             <ul>
                               {JSON.parse(firma.telephone).map((item: string) => (
                                 <li id={item}>{item}</li>
                               ))}
                             </ul>
-                          </p>
+                          </div>
                         </div>
                         <div className="row">
-                          <p className="card-text">
+                          <div className="card-text">
                             <span style={{ fontWeight: "500" }}>Epost: </span>
                             <ul>
                               {JSON.parse(firma.email).map((item: string) => (
-                                <li id={item}>
-                                  {item}
-                                </li>
+                                <li id={item}>{item}</li>
                               ))}
                             </ul>
-                          </p>
+                          </div>
                         </div>
                         <div className="row">
-                          <p className="card-text">
+                          <div className="card-text">
                             <span style={{ fontWeight: "500" }}>Hjemmeside: </span>
                             <ul>
                               {JSON.parse(firma.website).map((item: string) => (
@@ -156,14 +165,20 @@ function FirmaCard(firma: Firma, last_updated: string) {
                                 </li>
                               ))}
                             </ul>
-                          </p>
+                          </div>
                         </div>
                       </div>
                     </div>
                   </div>
                 </div>
-                <EmailModal name={firma.name} emails={firma.email} nace={firma.nace} onButtonClick={() => {  setContacted(true)
-                console.log("CLICKED")}}></EmailModal>
+                <EmailModal
+                  name={firma.name}
+                  emails={firma.email}
+                  nace={firma.nace}
+                  onButtonClick={() => {
+                    setContacted(true);
+                  }}
+                ></EmailModal>
               </div>
             </Collapse>
             <p className="card-text">
@@ -257,15 +272,15 @@ function FirmaOverview() {
             <Card style={{ padding: "10px 10px 10px 10px" }}>
               <div style={{ margin: "auto", padding: "20px 0px 20px 0px" }}>
                 <Select
-                    placeholder="Velg kommune"
-                    options={naceOptions}
-                    closeMenuOnSelect={false}
-                    isMulti
-                    styles={styles}
-                    onChange={(choice) => {
-                      const itemList = choice.map((item) => item.value);
-                      setSelectedNace(itemList.join("æsepæ"));
-                    }}
+                  placeholder="Velg kommune"
+                  options={naceOptions}
+                  closeMenuOnSelect={false}
+                  isMulti
+                  styles={styles}
+                  onChange={(choice) => {
+                    const itemList = choice.map((item) => item.value);
+                    setSelectedNace(itemList.join("æsepæ"));
+                  }}
                 />
               </div>
               <div style={{ margin: "auto", padding: "20px 0px 20px 0px" }}>
@@ -326,6 +341,7 @@ function FirmaOverview() {
             {firma.map((item) => (
               <Fragment key={item.name}>
                 <FirmaCard
+                  key={item.orgnr}
                   id={item.name}
                   name={item.name}
                   email={item.email}
@@ -339,6 +355,7 @@ function FirmaOverview() {
                   postal={item.postal}
                   postalcode={item.postalcode}
                   municipality={item.municipality}
+                  contacted={item.contacted}
                 ></FirmaCard>
               </Fragment>
             ))}
