@@ -29,7 +29,6 @@ class FirmContactedView(viewsets.ModelViewSet):
 
     @action(detail=False, methods=['POST'], name='/')
     def update_contacted(self, request):
-        print(request.data)
         try:
             obj, created = FirmContacted.objects.update_or_create(**request.data, defaults={
                 "user_id": request.data["user_id"],
@@ -65,7 +64,12 @@ class FirmView(viewsets.ModelViewSet):
             empl = json.loads(request.GET.get("employees"))
             queryset = queryset.filter(employees__gte=empl[0])
             queryset = queryset.filter(employees__lte=empl[1])
-        #print(queryset.query)
+        if request.GET.get("municipality", None):
+            print(request.GET.get("municipality"))
+            municipalities = request.GET.get("municipality").split(",")
+            print(municipalities)
+            queryset = queryset.filter(municipality_nr__in=municipalities)
+        print(queryset.query)
         count = queryset.count()
         queryset = LimitOffsetPagination().paginate_queryset(queryset=queryset, request=request)
         serializer = self.get_serializer(queryset, many=True)

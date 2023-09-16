@@ -4,7 +4,7 @@ import axios from "axios";
 import { useEffect } from "react";
 import ReactPaginate from "react-paginate";
 
-import { naceList } from "./utils";
+import { municipalityObj, naceList } from "./utils";
 import { styles } from "./styles/styles";
 import EmailModal from "./components/EmailModal";
 import Select from "react-select";
@@ -14,6 +14,7 @@ import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import Card from "@mui/material/Card";
 import { Collapse, Divider, Slider, Box, TextField } from "@mui/material";
+import MultiSelect from "./components/MUIMutliSelect";
 
 type Firma = {
   id: string;
@@ -107,7 +108,7 @@ function FirmaCard(firma: Firma, last_updated: string) {
                       <div className="col">
                         <p className="card-text">
                           <span style={{ fontWeight: "bold" }}>Adresse: </span>
-                          {firma.address + ", " + firma.postalcode + " " + firma.postal}
+                          {JSON.parse(firma.address) + ", " + firma.postalcode + " " + firma.postal}
                         </p>
 
                         <p className="card-text">
@@ -204,6 +205,7 @@ function FirmaOverview() {
   const [hasTelephone, setHasTelephone] = useState(false);
   const [selectedNace, setSelectedNace] = useState("");
   const [selectedEmployees, setSelectedEmployees] = useState<number[]>([0, 100000]);
+  const [selectedMunicipality, setSelectedMunicipality] = useState<string[]>([]);
 
   const [employees, setEmployees] = useState<number[]>([0, 100000]);
 
@@ -220,6 +222,9 @@ function FirmaOverview() {
   hasWebsite ? updateUrl("&website=True", false) : updateUrl("&website=True", true);
   hasTelephone ? updateUrl("&telephone=True", false) : updateUrl("&telephone=True", true);
   selectedNace != "" ? updateUrl(`&naering=${selectedNace}`, false) : updateUrl(`&naering=${selectedNace}`, true);
+  selectedMunicipality?.length != 0
+    ? updateUrl(`&municipality=${selectedMunicipality}`, false)
+    : updateUrl(`&municipality=${selectedMunicipality}`, true);
 
   useEffect(() => {
     axios
@@ -229,7 +234,7 @@ function FirmaOverview() {
         setCount(res.data.count);
       })
       .catch((err) => console.log(err));
-  }, [offset, hasEmail, hasWebsite, hasTelephone, selectedNace, selectedEmployees]);
+  }, [offset, hasEmail, hasWebsite, hasTelephone, selectedNace, selectedEmployees, selectedMunicipality]);
 
   // Resets ReactPaginate initial page and offset
   // Will be an issue if count is similar for two events
@@ -256,6 +261,12 @@ function FirmaOverview() {
     setEmployees(employees as number[]);
   };
 
+  const handleMunicipality = (municipalities: any) => {
+    const values: string[] = [];
+    municipalities.forEach((item: any) => values.push(item.value));
+    setSelectedMunicipality(values);
+  };
+
   let naceOptions: NaceInfo[] = [];
 
   interface NaceInfo {
@@ -271,17 +282,7 @@ function FirmaOverview() {
           <div className="col-3">
             <Card style={{ padding: "10px 10px 10px 10px" }}>
               <div style={{ margin: "auto", padding: "20px 0px 20px 0px" }}>
-                <Select
-                  placeholder="Velg kommune"
-                  options={naceOptions}
-                  closeMenuOnSelect={false}
-                  isMulti
-                  styles={styles}
-                  onChange={(choice) => {
-                    const itemList = choice.map((item) => item.value);
-                    setSelectedNace(itemList.join("æsepæ"));
-                  }}
-                />
+                <MultiSelect onChange={handleMunicipality} />
               </div>
               <div style={{ margin: "auto", padding: "20px 0px 20px 0px" }}>
                 <Select
