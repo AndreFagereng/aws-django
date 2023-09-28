@@ -15,13 +15,19 @@ import operator
 from functools import reduce
 
 
-from .serializers import FirmContactedSerializer, FirmSerializer
-from .models import Firm
+from .serializers import FirmContactedSerializer, FirmSerializer, EmailTemplateSerializer
+from .models import Firm, EmailTemplate
 
 from collections import OrderedDict
 
 def to_boolean(string):
     return string == "True"
+
+class EmailTemplateView(viewsets.ModelViewSet):
+    pagination_class = None
+    serializer_class = EmailTemplateSerializer
+    queryset = EmailTemplate.objects.all()
+
 
 class FirmContactedView(viewsets.ModelViewSet):
     serializer_class = FirmContactedSerializer
@@ -73,12 +79,7 @@ class FirmView(viewsets.ModelViewSet):
         count = queryset.count()
         queryset = LimitOffsetPagination().paginate_queryset(queryset=queryset, request=request)
         serializer = self.get_serializer(queryset, many=True)
-        print(type(serializer.data[0]["contacted"]))
-        
-        #print(OrderedDict([
-        #    ("results", serializer.data),
-        #    
-        #]))
+    
         return Response(OrderedDict([
             ("results", serializer.data),
             ("count", count)

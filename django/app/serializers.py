@@ -1,6 +1,11 @@
 from rest_framework import serializers
-from .models import Firm, FirmContacted
+from .models import Firm, FirmContacted, EmailTemplate
 
+class EmailTemplateSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = EmailTemplate
+        fields = "__all__"
 
 class StrictBooleanField(serializers.BooleanField):
     def from_native(self, value):

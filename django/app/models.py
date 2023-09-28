@@ -1,7 +1,13 @@
 from django.db import models
 from django.forms import ModelForm
 
-import time
+from django.utils import timezone
+
+class EmailTemplate(models.Model):
+    name = models.CharField(max_length=100)
+    subject = models.CharField(max_length=250)
+    body = models.TextField()
+    last_modified = models.DateTimeField(default=timezone.now)
 
 
 class Firm(models.Model):

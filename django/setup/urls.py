@@ -22,6 +22,7 @@ from app import views
 router = routers.DefaultRouter()
 router.register(r'firms', views.FirmView, 'firm')
 router.register(r'contacted', views.FirmContactedView, 'contacted')
+router.register(r'template', views.EmailTemplateView, 'template')
 #router.register(r'emails', views.get_where_email_exists, 'emails')
 
 urlpatterns = [

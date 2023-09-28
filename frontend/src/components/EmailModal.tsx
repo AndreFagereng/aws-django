@@ -2,6 +2,8 @@ import { Box, Button, Modal, TextField, Typography } from "@mui/material";
 import Select from "react-select";
 import { ChangeEvent, useState } from "react";
 import { toTitleCase } from "../utils";
+import { Template } from "../EmailTemplate";
+import axios from "axios";
 
 const style = {
   position: "absolute" as "absolute",
@@ -20,6 +22,7 @@ interface EmailModalProps {
   emails: string;
   name: string;
   nace: string;
+  templates: Template[];
   onButtonClick: () => void;
 }
 
@@ -29,17 +32,19 @@ interface EmailOption {
 }
 
 export default function EmailModal(props: EmailModalProps) {
-
+  let templateOptions: EmailOption[] = [];
+  props.templates.map((item: Template) => templateOptions.push({ label: item.name, value: item.id.toString() }));
   let emailOptions: EmailOption[] = [];
   JSON.parse(props.emails).map((item: string) => emailOptions.push({ label: item, value: item }));
 
   const [open, setOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<Template[]>([]);
   const [selectedEmail, setSelectedEmail] = useState(emailOptions.at(0));
-  const initialSubject: string = "Hei " + toTitleCase(props.name) + "!";
-  const initialBody: string =
-    "Dere er registrert innenfor " + "'" + props.nace + "'" + " i brønnøysundsregisteret.%0D%0A%0D%0A%0D%0A";
-  const [subject, setSubject] = useState(initialSubject);
-  const [body, setBody] = useState(initialBody);
+  const [initialSubject, setInitialSubject] = useState("Hei " + toTitleCase(props.name) + "!");
+  const [initialBody, setInitialBody] = useState(
+    "Dere er registrert innenfor " + "'" + props.nace + "'" + " i brønnøysundsregisteret.%0D%0A%0D%0A%0D%0A"
+  );
+
   const handleOpen = () => setOpen(true);
   const handleClose = () => setOpen(false);
 
@@ -47,14 +52,14 @@ export default function EmailModal(props: EmailModalProps) {
     return emailOptions.length > 0 ? false : true;
   };
   const handleSubject = (e: ChangeEvent<HTMLInputElement>) => {
-    setSubject(e.target.value);
+    setInitialSubject(e.target.value);
   };
   const handleBody = (e: ChangeEvent<HTMLInputElement>) => {
-    setBody(e.target.value);
+    setInitialBody(e.target.value);
   };
 
   const createMailToString = () => {
-    return "mailto:" + selectedEmail?.label + "?subject=" + subject + "&body=" + body;
+    return "mailto:" + selectedEmail?.label + "?subject=" + initialSubject + "&body=" + initialBody;
   };
 
   return (
@@ -74,7 +79,24 @@ export default function EmailModal(props: EmailModalProps) {
             <div className="d-flex justify-content-center">
               <h1 style={{ fontSize: "1.5em" }}>Mal</h1>
             </div>
-            <div className="row">
+            <div className="row mt-4">
+              <p style={{ padding: "0 0 0 0" }}>Velg epost-mal</p>
+              <Select
+                options={templateOptions}
+                className="p-0"
+                defaultValue={templateOptions.at(0)}
+                closeMenuOnSelect={true}
+                onChange={(item) => {
+                  props.templates.forEach((element) => {
+                    if (element.id === Number(item?.value)) {
+                      setInitialSubject(element.subject);
+                      setInitialBody(element.body);
+                    }
+                  });
+                }}
+              ></Select>
+            </div>
+            <div className="row mt-5">
               <p style={{ padding: "0 0 0 0" }}>Velg epost</p>
               <Select
                 placeholder="Velg epost"
@@ -96,7 +118,7 @@ export default function EmailModal(props: EmailModalProps) {
                 label="Emne"
                 multiline
                 rows={2}
-                defaultValue={disable() ? "" : initialSubject}
+                value={disable() ? "" : initialSubject}
                 placeholder="Emne / Subject"
                 variant="filled"
               />
@@ -108,7 +130,7 @@ export default function EmailModal(props: EmailModalProps) {
                 label="Tekst"
                 multiline
                 rows={5}
-                defaultValue={disable() ? "" : initialBody}
+                value={disable() ? "" : initialBody}
                 placeholder="Tekst / Body"
                 variant="filled"
               />
@@ -119,7 +141,7 @@ export default function EmailModal(props: EmailModalProps) {
                 onClick={(e) => {
                   props.onButtonClick();
                   //window.location.href = createMailToString().toString();
-                  window.open(createMailToString().toString(), "_blanc")
+                  window.open(createMailToString().toString(), "_blanc");
                 }}
                 variant="outlined"
                 disabled={disable()}

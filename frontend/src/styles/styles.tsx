@@ -19,3 +19,8 @@ export const styles: {
     return state.data.isFixed ? { ...base, display: "none" } : base;
   },
 };
+
+export const cardStyle = {
+  color: "white",
+  padding: "10px 10px 10px 10px",
+};

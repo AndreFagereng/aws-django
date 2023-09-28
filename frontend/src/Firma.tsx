@@ -1,215 +1,68 @@
-import { Fragment } from "react";
+import { ChangeEvent, Fragment } from "react";
 import { useState } from "react";
-import axios from "axios";
 import { useEffect } from "react";
+import axios from "axios";
 import ReactPaginate from "react-paginate";
 
-import { municipalityObj, naceList } from "./utils";
+import { naceList } from "./utils";
 import { styles } from "./styles/styles";
-import EmailModal from "./components/EmailModal";
 import Select from "react-select";
 
 import FormGroup from "@mui/material/FormGroup";
 import FormControlLabel from "@mui/material/FormControlLabel";
 import Checkbox from "@mui/material/Checkbox";
 import Card from "@mui/material/Card";
-import { Collapse, Divider, Slider, Box, TextField } from "@mui/material";
-import MultiSelect from "./components/MUIMutliSelect";
+import { Slider, Box, TextField, Button, TablePagination, Pagination } from "@mui/material";
+import MultiSelect from "./components/MultiSelect";
+import FirmaCard, { Firma } from "./components/FirmCard";
+import Header from "./Header";
+import { Template } from "./EmailTemplate";
 
-type Firma = {
-  id: string;
-  name: string;
-  employees: number;
-  orgnr: string;
-  orgtype: string;
-  nace: string;
-  email: string;
-  telephone: string;
-  website: string;
-  address: string;
-  postal: string;
-  postalcode: string;
-  municipality: string;
-  contacted: boolean;
+type NaceInfo = {
+  label: string;
+  value: string;
 };
 
-function FirmaCard(firma: Firma, last_updated: string) {
-  const [hide, setHide] = useState(true);
-  const [contacted, setContacted] = useState(firma.contacted);
-  const toggleHide = () => {
-    setHide(!hide);
-  };
-  const contactUrl = "http://localhost:8000/api/contacted/update_contacted/";
-  const postContacted = () => {
-    setContacted(!contacted);
-    axios
-      .post(contactUrl, {
-        user_id: "andre",
-        orgnr: firma.orgnr,
-        contacted: contacted,
-      })
-      .catch((err) => console.log(err));
-  };
+type FilterState = {
+  hasEmail: boolean;
+  hasWebsite: boolean;
+  hasPhone: boolean;
 
-  return (
-    <Fragment key={firma.id}>
-      {
-        <Card
-          key={firma.id}
-          className="card mb-3"
-          style={{ margin: "auto", backgroundColor: contacted ? "#F5F5F5" : "" }}
-        >
-          <div className="card-body">
-            <div
-              onClick={() => {
-                toggleHide();
-              }}
-              style={{ cursor: "pointer" }}
-            >
-              <h5 className="card-title">{firma.name}</h5>
-              <p className="card-text">{firma.nace}</p>
-            </div>
-            <div className="position-absolute top-0 end-0">
-              <FormGroup>
-                <FormControlLabel
-                  checked={contacted}
-                  disabled={false}
-                  style={{ opacity: 0.5 }}
-                  control={<Checkbox onClick={postContacted} size="small" />}
-                  label="Kontaktet"
-                />
-              </FormGroup>
-            </div>
+  selNaceCode: string;
+  selNEmployers: number[];
+  selMunicipality: string[];
+};
 
-            <Collapse
-              in={!hide}
-              timeout="auto"
-              easing={{
-                enter: "cubic-bezier(0.4, 0, 0.2, 1)",
-                exit: "cubic-bezier(0.4, 0, 0.2, 1)",
-              }}
-            >
-              <div
-                style={{
-                  justifyContent: "space-around",
-                }}
-              >
-                <Divider />
-
-                <div style={{ textAlign: "left", margin: "auto" }}>
-                  <div
-                    onClick={() => {
-                      toggleHide();
-                    }}
-                    className="container cus"
-                    style={{ cursor: "pointer" }}
-                  >
-                    <div className="row">
-                      <div className="col">
-                        <p className="card-text">
-                          <span style={{ fontWeight: "bold" }}>Adresse: </span>
-                          {JSON.parse(firma.address) + ", " + firma.postalcode + " " + firma.postal}
-                        </p>
-
-                        <p className="card-text">
-                          <span style={{ fontWeight: "bold" }}>Kommune: </span>
-                          {firma.municipality}
-                        </p>
-                      </div>
-                      <div className="col">
-                        <div className="row">
-                          <p className="card-text">
-                            <span style={{ fontWeight: "bold" }}>Ansatte: </span>
-                            {firma.employees}
-                          </p>
-                        </div>
-                        <div className="row">
-                          <p>
-                            <span style={{ fontWeight: "bold" }}>Proff: </span>
-                            <a target="_blank" href={`https://www.proff.no/bransjes%C3%B8k?q=${firma.orgnr}`}>
-                              {firma.orgnr}
-                            </a>{" "}
-                          </p>
-                        </div>
-                      </div>
-                      <div className="col">
-                        <div className="row"></div>
-                        <div className="row">
-                          <div className="card-text">
-                            <span style={{ fontWeight: "bold" }}>Telefon: </span>
-                            <ul>
-                              {JSON.parse(firma.telephone).map((item: string) => (
-                                <li id={item}>{item}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                        <div className="row">
-                          <div className="card-text">
-                            <span style={{ fontWeight: "500" }}>Epost: </span>
-                            <ul>
-                              {JSON.parse(firma.email).map((item: string) => (
-                                <li id={item}>{item}</li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                        <div className="row">
-                          <div className="card-text">
-                            <span style={{ fontWeight: "500" }}>Hjemmeside: </span>
-                            <ul>
-                              {JSON.parse(firma.website).map((item: string) => (
-                                <li id={item}>
-                                  <a target="_blank" href={item}>
-                                    {item}
-                                  </a>
-                                </li>
-                              ))}
-                            </ul>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <EmailModal
-                  name={firma.name}
-                  emails={firma.email}
-                  nace={firma.nace}
-                  onButtonClick={() => {
-                    setContacted(true);
-                  }}
-                ></EmailModal>
-              </div>
-            </Collapse>
-            <p className="card-text">
-              <small className="text-body-secondary">Last updated {1} mins ago</small>
-            </p>
-          </div>
-        </Card>
-      }
-    </Fragment>
-  );
-}
+type PaginationState = {
+  count: number;
+  offset: number;
+  currentPage: number;
+};
 
 function FirmaOverview() {
-  const itemsPerPage = 5;
-  const [firma, setFirma] = useState<Firma[]>([]);
-  const [count, setCount] = useState(0);
-  const [limit, setLimit] = useState(itemsPerPage);
-  const [offset, setOffset] = useState(0);
-  const [currentPage, setCurrentPage] = useState(-1);
-
-  const [hasEmail, setHasEmail] = useState(false);
-  const [hasWebsite, setHasWebsite] = useState(false);
-  const [hasTelephone, setHasTelephone] = useState(false);
-  const [selectedNace, setSelectedNace] = useState("");
-  const [selectedEmployees, setSelectedEmployees] = useState<number[]>([0, 100000]);
-  const [selectedMunicipality, setSelectedMunicipality] = useState<string[]>([]);
-
+  const itemsPerPage = 10;
+  const [selectedTemplates, setSelectedTemplates] = useState<Template[]>([]);
   const [employees, setEmployees] = useState<number[]>([0, 100000]);
+  const [firma, setFirma] = useState<Firma[]>([]);
+  const [pageinationState, setPaginationState] = useState<PaginationState>({
+    count: 0,
+    offset: 0,
+    currentPage: -1,
+  });
+  const [filterState, setFilterState] = useState<FilterState>({
+    hasEmail: false,
+    hasWebsite: false,
+    hasPhone: false,
+    selNaceCode: "",
+    selNEmployers: [0, 100000],
+    selMunicipality: [],
+  });
 
-  let url = `http://localhost:8000/api/firms/custom/?limit=${limit}&offset=${offset}&employees=[${selectedEmployees[0]},${selectedEmployees[1]}]`;
+  //const handlerFilterChange = (e: ChangeEvent<HTMLInputElement>) => {
+  //  setFilterState({...filterState, [e.target.name]: e.target.value})
+  //}
+
+  let url = `http://localhost:8000/api/firms/custom/?limit=${itemsPerPage}&offset=${pageinationState.offset}&employees=[${filterState.selNEmployers[0]},${filterState.selNEmployers[1]}]`;
   const updateUrl = (str: string, replace: boolean) => {
     if (replace) {
       url.replace(str, "");
@@ -218,71 +71,77 @@ function FirmaOverview() {
     }
   };
 
-  hasEmail ? updateUrl("&email=True", false) : updateUrl("&email=True", true);
-  hasWebsite ? updateUrl("&website=True", false) : updateUrl("&website=True", true);
-  hasTelephone ? updateUrl("&telephone=True", false) : updateUrl("&telephone=True", true);
-  selectedNace != "" ? updateUrl(`&naering=${selectedNace}`, false) : updateUrl(`&naering=${selectedNace}`, true);
-  selectedMunicipality?.length != 0
-    ? updateUrl(`&municipality=${selectedMunicipality}`, false)
-    : updateUrl(`&municipality=${selectedMunicipality}`, true);
+  filterState.hasEmail ? updateUrl("&email=True", false) : updateUrl("&email=True", true);
+  filterState.hasWebsite ? updateUrl("&website=True", false) : updateUrl("&website=True", true);
+  filterState.hasPhone ? updateUrl("&telephone=True", false) : updateUrl("&telephone=True", true);
+  filterState.selNaceCode.length != 0
+    ? updateUrl(`&naering=${filterState.selNaceCode}`, false)
+    : updateUrl(`&naering=${filterState.selNaceCode}`, true);
+  filterState.selMunicipality?.length != 0
+    ? updateUrl(`&municipality=${filterState.selMunicipality.toString()}`, false)
+    : updateUrl(`&municipality=${filterState.selMunicipality.toString()}`, true);
 
   useEffect(() => {
     axios
       .get(url)
       .then((res) => {
         setFirma(res.data.results);
-        setCount(res.data.count);
+        setPaginationState({ ...pageinationState, count: res.data.count });
       })
       .catch((err) => console.log(err));
-  }, [offset, hasEmail, hasWebsite, hasTelephone, selectedNace, selectedEmployees, selectedMunicipality]);
+  }, [pageinationState.offset, filterState]);
 
   // Resets ReactPaginate initial page and offset
   // Will be an issue if count is similar for two events
+  //useEffect(() => {
+  // setPaginationState({ ...pageinationState, currentPage: 0, offset: 0 });
+  //}, [pageinationState.count]);
+
+  let templatesOptions = [];
   useEffect(() => {
-    setCurrentPage(0);
-    setOffset(0);
-  }, [count]);
+    axios
+      .get("http://localhost:8000/api/template")
+      .then((res) => {
+        res.data.map((item: Template) => templatesOptions.push({ label: item.name, value: item.name }));
+        setSelectedTemplates(res.data);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  }, []);
 
   const handlePageClick = (a: { selected: number }) => {
-    const newOffset = (a.selected * itemsPerPage) % count;
-    setOffset(newOffset);
-    setCurrentPage(a.selected);
+    const newOffset = (a.selected * itemsPerPage) % pageinationState.count;
+    setPaginationState({ ...pageinationState, offset: newOffset, currentPage: a.selected });
   };
 
-  function valuetext(value: number) {
-    return `${value}°C`;
-  }
   const handleSlider = (event: Event, newValue: number | number[]) => {
     setEmployees(newValue as number[]);
   };
 
   const handleSliderOnCommit = () => {
-    setSelectedEmployees(employees);
+    setFilterState({ ...filterState, selNEmployers: employees });
     setEmployees(employees as number[]);
   };
 
-  const handleMunicipality = (municipalities: any) => {
-    const values: string[] = [];
-    municipalities.forEach((item: any) => values.push(item.value));
-    setSelectedMunicipality(values);
-  };
-
   let naceOptions: NaceInfo[] = [];
-
-  interface NaceInfo {
-    label: string;
-    value: string;
-  }
-
   naceList.map((item) => naceOptions.push({ label: item, value: item }));
+
   return (
     <>
-      <div className="container">
+      <Header></Header>
+      <div className="container mt-10">
         <div className="row">
           <div className="col-3">
-            <Card style={{ padding: "10px 10px 10px 10px" }}>
+            <Card className="bg-color-1" style={{ padding: "10px 10px 10px 10px" }}>
               <div style={{ margin: "auto", padding: "20px 0px 20px 0px" }}>
-                <MultiSelect onChange={handleMunicipality} />
+                <MultiSelect
+                  onChange={(choice) => {
+                    const values: string[] = [];
+                    choice.forEach((item: any) => values.push(item.value));
+                    setFilterState({ ...filterState, selMunicipality: values });
+                  }}
+                />
               </div>
               <div style={{ margin: "auto", padding: "20px 0px 20px 0px" }}>
                 <Select
@@ -293,7 +152,7 @@ function FirmaOverview() {
                   styles={styles}
                   onChange={(choice) => {
                     const itemList = choice.map((item) => item.value);
-                    setSelectedNace(itemList.join("æsepæ"));
+                    setFilterState({ ...filterState, selNaceCode: itemList.join("æsepæ") });
                   }}
                 />
               </div>
@@ -315,9 +174,22 @@ function FirmaOverview() {
                     onChange={handleSlider}
                     onChangeCommitted={handleSliderOnCommit}
                     valueLabelDisplay="auto"
-                    getAriaValueText={valuetext}
                     min={0}
                     max={1000}
+                    sx={{
+                      "& .MuiSlider-thumb": {
+                        color: "#3a4750",
+                      },
+                      "& .MuiSlider-track": {
+                        color: "#3a4750",
+                      },
+                      "& .MuiSlider-rail": {
+                        color: "#acc4e4",
+                      },
+                      "& .MuiSlider-active": {
+                        color: "green",
+                      },
+                    }}
                   />
                 </Box>
               </div>
@@ -325,20 +197,54 @@ function FirmaOverview() {
               <FormGroup row className="justify-content-center">
                 <FormControlLabel
                   label="Epost"
-                  control={<Checkbox size="small" onChange={() => setHasEmail(!hasEmail)}></Checkbox>}
+                  control={
+                    <Checkbox
+                      size="small"
+                      onChange={() => setFilterState({ ...filterState, hasEmail: !filterState.hasEmail })}
+                    ></Checkbox>
+                  }
                 ></FormControlLabel>
                 <FormControlLabel
                   label="Hjemmeside"
-                  control={<Checkbox size="small" onChange={() => setHasWebsite(!hasWebsite)}></Checkbox>}
+                  control={
+                    <Checkbox
+                      size="small"
+                      onChange={() => setFilterState({ ...filterState, hasWebsite: !filterState.hasWebsite })}
+                    ></Checkbox>
+                  }
                 ></FormControlLabel>
                 <FormControlLabel
                   label="Telefon"
-                  control={<Checkbox size="small" onChange={() => setHasTelephone(!hasTelephone)}></Checkbox>}
+                  control={
+                    <Checkbox
+                      size="small"
+                      onChange={() => setFilterState({ ...filterState, hasPhone: !filterState.hasPhone })}
+                    ></Checkbox>
+                  }
                 ></FormControlLabel>
               </FormGroup>
             </Card>
           </div>
+
           <div className="col">
+            <div className="d-flex justify-content-between pl-3 pr-3">
+              <FormControlLabel label="Velg alle" control={<Checkbox size="small"></Checkbox>}></FormControlLabel>
+              <div className="p-2 border-3 border-b-teal-600 mb-2 float-right">
+                {" "}
+                <span className="bg-gradient-to-r from-teal-800 to-rose-800 bg-clip-text text-transparent font-bold">
+                  Selektert
+                </span>{" "}
+                {0}
+              </div>
+
+              <div className="p-2 border-3 border-b-teal-600 mb-2 float-right ">
+                {" "}
+                <span className="bg-gradient-to-r from-teal-800 to-rose-800 bg-clip-text text-transparent font-bold">
+                  Treff
+                </span>{" "}
+                <span className="font-semibold">{pageinationState.count}</span>
+              </div>
+            </div>
             {firma.map((item) => (
               <Fragment key={item.name}>
                 <FirmaCard
@@ -357,17 +263,18 @@ function FirmaOverview() {
                   postalcode={item.postalcode}
                   municipality={item.municipality}
                   contacted={item.contacted}
+                  templates={selectedTemplates}
                 ></FirmaCard>
               </Fragment>
             ))}
             <div style={{ margin: "auto" }}>
               <ReactPaginate
-                forcePage={currentPage}
+                forcePage={pageinationState.currentPage}
                 breakLabel="..."
                 onPageChange={handlePageClick}
                 pageRangeDisplayed={5}
                 renderOnZeroPageCount={null}
-                pageCount={Math.ceil(count / limit)}
+                pageCount={Math.ceil(pageinationState.count / itemsPerPage)}
                 breakClassName={"page-item"}
                 breakLinkClassName={"page-link"}
                 containerClassName={"pagination"}
